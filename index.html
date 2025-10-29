@@ -4,745 +4,373 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#6366f1">
-    <meta name="description" content="Play Block Blast Pro and earn real money! Complete levels, watch ads, withdraw via UPI.">
-    <title>Block Blast Pro - Earn Real Money</title>
+    <title>Block Blast Pro</title>
     
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-app-pub-2761605268905056~7782544870" crossorigin="anonymous"></script>
     
-    
-    <script src="https://unpkg.com/tailwindcss@3.3.6/lib/index.js"></script>
-
     <style>
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            touch-action: none;
-            overscroll-behavior: none;
+            font-family: -apple-system, sans-serif; 
+            touch-action: none; 
             overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        
-        html, body, #root {
-            width: 100%;
-            height: 100%;
-            position: fixed;
-        }
-        
-        body {
-            overscroll-behavior-y: contain;
-        }
-        
-        html {
-            position: fixed;
-            height: 100%;
-            overflow: hidden;
-        }
-        
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            /* Loading screen background को नीला/बैंगनी रखें */
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
         }
-        
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+        #app { width: 100%; height: 100vh; display: flex; flex-direction: column; }
+        .screen { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .screen.active { display: flex; }
+        button { 
+            padding: 15px 30px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            border: none; 
+            border-radius: 15px; 
+            cursor: pointer;
+            margin: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        button:active { transform: scale(0.95); }
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(8, 1fr); 
+            gap: 5px; 
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 15px;
+            margin: 20px 0;
+            max-width: 400px;
+        }
+        .cell { 
+            aspect-ratio: 1; 
+            background: rgba(255,255,255,0.2); 
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+        .blocks { display: flex; gap: 10px; margin: 20px 0; }
+        .block { 
+            background: rgba(255,255,255,0.2); 
+            padding: 15px; 
+            border-radius: 10px; 
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .block:active { transform: scale(1.1); }
+        .block-cell { 
+            width: 20px; 
+            height: 20px; 
+            border-radius: 3px; 
+            margin: 2px;
+        }
+        .stats { 
+            display: flex; 
+            gap: 15px; 
+            margin: 20px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .stat { 
+            background: rgba(255,255,255,0.2); 
+            padding: 10px 20px; 
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value { font-size: 24px; font-weight: bold; }
+        .stat-label { font-size: 12px; opacity: 0.8; }
+        input { 
+            padding: 12px; 
+            font-size: 16px; 
+            border: 2px solid white;
+            border-radius: 10px;
+            margin: 10px;
+            width: 250px;
+        }
+        h1 { font-size: 40px; margin: 20px 0; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        h2 { font-size: 28px; margin: 15px 0; }
+        .progress { 
+            width: 100%; 
+            max-width: 400px;
+            height: 20px; 
+            background: rgba(255,255,255,0.2); 
+            border-radius: 10px; 
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-bar { 
+            height: 100%; 
+            background: linear-gradient(90deg, #4ade80, #22c55e); 
+            transition: width 0.3s;
         }
     </style>
 </head>
 <body>
-    <div id="root">
-        <div class="loading">
-            <div class="spinner"></div>
+    <div id="app">
+        <!-- Home Screen -->
+        <div class="screen active" id="home">
+            <h1>🎮 Block Blast Pro</h1>
+            <h2>💰 Earn Real Money!</h2>
+            <div class="stat">
+                <div class="stat-label">Earn Per Level</div>
+                <div class="stat-value">₹0.25</div>
+            </div>
+            <button onclick="showScreen('game')">🎮 Start Playing</button>
+            <button onclick="showScreen('profile')">👤 My Profile</button>
+            <button onclick="showScreen('wallet')">💰 Wallet (₹<span id="home-earnings">0.00</span>)</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="screen" id="game">
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="score">0</div>
+                    <div class="stat-label">Score</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="level">1</div>
+                    <div class="stat-label">Level</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">₹<span id="earnings">0.00</span></div>
+                    <div class="stat-label">Earned</div>
+                </div>
+            </div>
+            
+            <div class="progress">
+                <div class="progress-bar" id="progress" style="width: 0%"></div>
+            </div>
+            
+            <div class="grid" id="grid"></div>
+            
+            <div class="blocks" id="blocks"></div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="showScreen('home')">🏠 Home</button>
+                <button onclick="resetGame()">🔄 Reset</button>
+                <button onclick="showScreen('wallet')">💰 Wallet</button>
+            </div>
+        </div>
+
+        <!-- Profile Screen -->
+        <div class="screen" id="profile">
+            <h2>👤 My Profile</h2>
+            <input type="text" id="name-input" placeholder="Your Name" />
+            <input type="text" id="upi-input" placeholder="UPI ID (name@paytm)" />
+            <button onclick="saveProfile()">💾 Save Profile</button>
+            <button onclick="showScreen('home')">🏠 Home</button>
+        </div>
+
+        <!-- Wallet Screen -->
+        <div class="screen" id="wallet">
+            <h2>💰 My Wallet</h2>
+            <div class="stat" style="font-size: 48px; margin: 20px 0;">
+                ₹<span id="wallet-earnings">0.00</span>
+            </div>
+            <button onclick="withdraw()" id="withdraw-btn">💸 Withdraw</button>
+            <button onclick="showScreen('home')">🏠 Home</button>
+            <div id="history" style="margin-top: 20px; text-align: center;"></div>
         </div>
     </div>
-    
-    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@0.363.0/dist/umd/lucide.min.js"></script>
-    
-    <script type="text/babel">
-        const { useState, useEffect, useCallback, useRef } = React;
-        const { RotateCcw, Trophy, Star, Zap, User, Wallet, Home, Volume2, VolumeX, X, DollarSign } = lucide;
 
-        const BlockBlastPro = () => {
-          const GRID_SIZE = 8;
-          const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#A29BFE', '#FD79A8'];
-          const EARNING_PER_LEVEL = 0.25;
-          const MIN_WITHDRAWAL = 10;
-
-          const draggedBlockRef = useRef(null);
-          const dragOffsetRef = useRef({ x: 0, y: 0 });
-          const ghostRef = useRef(null);
-          const gridRef = useRef(null);
-
-          const [screen, setScreen] = useState('home');
-          const [grid, setGrid] = useState(() => Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null)));
-          const [blocks, setBlocks] = useState([]);
-          const [score, setScore] = useState(0);
-          const [level, setLevel] = useState(1);
-          const [progress, setProgress] = useState(0);
-          const [combo, setCombo] = useState(0);
-          const [gameOver, setGameOver] = useState(false);
-          const [sound, setSound] = useState(true);
-          
-          const [earnings, setEarnings] = useState(() => parseFloat(localStorage.getItem('earnings') || '0'));
-          const [name, setName] = useState(() => localStorage.getItem('userName') || 'Player');
-          const [upi, setUpi] = useState(() => localStorage.getItem('userUPI') || '');
-          const [history, setHistory] = useState(() => JSON.parse(localStorage.getItem('history') || '[]'));
-
-          const [showAd, setShowAd] = useState(false);
-
-          useEffect(() => {
-            if (blocks.length === 0 && screen === 'game') {
-              setBlocks(generateBlocks());
-            }
-          }, [screen]);
-
-          useEffect(() => {
-            localStorage.setItem('earnings', earnings.toString());
-          }, [earnings]);
-
-          useEffect(() => {
-            if (progress >= 100) {
-              setLevel(l => l + 1);
-              setProgress(0);
-              setEarnings(e => e + EARNING_PER_LEVEL);
-              playSound('levelup');
-              setShowAd(true);
-            }
-          }, [progress]);
-
-          const generateBlocks = useCallback(() => {
-            const shapes = [
-              [[1]], [[1,1]], [[1],[1]], [[1,1,1]], [[1],[1],[1]],
-              [[1,1],[1,1]], [[1,1,0],[0,1,1]], [[0,1,1],[1,1,0]], [[1,1,1],[0,1,0]]
-            ];
-            return Array(3).fill(null).map(() => ({
-              shape: shapes[Math.floor(Math.random() * shapes.length)],
-              color: COLORS[Math.floor(Math.random() * COLORS.length)],
-              id: Math.random()
-            }));
-          }, []);
-
-          const playSound = useCallback((type) => {
-            if (!sound) return;
-            try {
-              const ctx = new (window.AudioContext || window.webkitAudioContext)();
-              const osc = ctx.createOscillator();
-              const gain = ctx.createGain();
-              osc.connect(gain);
-              gain.connect(ctx.destination);
-              
-              const freqs = { place: 400, clear: 800, levelup: 1200, gameover: 200, pickup: 600 };
-              osc.frequency.value = freqs[type] || 400;
-              gain.gain.value = 0.1;
-              osc.start();
-              osc.stop(ctx.currentTime + 0.08);
-            } catch(e) {}
-          }, [sound]);
-
-          const canPlace = useCallback((shape, row, col) => {
-            for (let r = 0; r < shape.length; r++) {
-              for (let c = 0; c < shape[r].length; c++) {
-                if (shape[r][c] === 1) {
-                  const nr = row + r;
-                  const nc = col + c;
-                  if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE || grid[nr][nc]) {
-                    return false;
-                  }
-                }
-              }
-            }
-            return true;
-          }, [grid]);
-
-          const placeBlock = useCallback((blockIdx, row, col) => {
-            const block = blocks[blockIdx];
-            if (!block || !canPlace(block.shape, row, col)) return;
-
-            const newGrid = grid.map(r => [...r]);
-            block.shape.forEach((r, ri) => {
-              r.forEach((cell, ci) => {
-                if (cell === 1) newGrid[row + ri][col + ci] = block.color;
-              });
-            });
-
-            playSound('place');
-            setGrid(newGrid);
-            setScore(s => s + block.shape.flat().filter(x => x === 1).length * 10);
-            setProgress(p => Math.min(p + 5, 100));
-
-            const newBlocks = [...blocks];
-            newBlocks[blockIdx] = null;
-            setBlocks(newBlocks);
-
-            setTimeout(() => {
-              const { cleared, lines } = clearLines(newGrid);
-              if (lines > 0) {
-                playSound('clear');
-                setGrid(cleared);
-                setScore(s => s + lines * 100 * (combo + 1));
-                setCombo(c => c + 1);
-                setProgress(p => Math.min(p + lines * 10, 100));
-              } else {
-                setCombo(0);
-              }
-
-              if (newBlocks.every(b => !b)) {
-                const fresh = generateBlocks();
-                setBlocks(fresh);
-                checkGameOver(cleared, fresh);
-              } else {
-                checkGameOver(cleared, newBlocks.filter(b => b));
-              }
-            }, 200);
-          }, [blocks, grid, canPlace, combo, generateBlocks]);
-
-          const clearLines = useCallback((g) => {
-            let cleared = g.map(r => [...r]);
-            let lines = 0;
-
-            for (let r = 0; r < GRID_SIZE; r++) {
-              if (cleared[r].every(c => c)) {
-                cleared[r] = Array(GRID_SIZE).fill(null);
-                lines++;
-              }
-            }
-
-            for (let c = 0; c < GRID_SIZE; c++) {
-              if (cleared.every(r => r[c])) {
-                cleared.forEach(r => r[c] = null);
-                lines++;
-              }
-            }
-
-            return { cleared, lines };
-          }, []);
-
-          const checkGameOver = useCallback((g, bs) => {
-            for (const block of bs) {
-              if (!block) continue;
-              for (let r = 0; r < GRID_SIZE; r++) {
-                for (let c = 0; c < GRID_SIZE; c++) {
-                  let ok = true;
-                  for (let sr = 0; sr < block.shape.length; sr++) {
-                    for (let sc = 0; sc < block.shape[sr].length; sc++) {
-                      if (block.shape[sr][sc] === 1) {
-                        const nr = r + sr;
-                        const nc = c + sc;
-                        if (nr >= GRID_SIZE || nc >= GRID_SIZE || g[nr][nc]) {
-                          ok = false;
-                          break;
-                        }
-                      }
-                    }
-                    if (!ok) break;
-                  }
-                  if (ok) return;
-                }
-              }
-            }
-            playSound('gameover');
-            setGameOver(true);
-          }, []);
-
-          const reset = useCallback(() => {
-            setGrid(Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null)));
-            setBlocks(generateBlocks());
-            setScore(0);
-            setCombo(0);
-            setGameOver(false);
-          }, [generateBlocks]);
-
-          const handleDragStart = useCallback((e, idx) => {
-            if (gameOver || !blocks[idx]) return;
-            
-            playSound('pickup');
-            draggedBlockRef.current = { block: blocks[idx], idx };
-            
-            const rect = e.currentTarget.getBoundingClientRect();
-            dragOffsetRef.current = {
-              x: e.clientX - rect.left - rect.width / 2,
-              y: e.clientY - rect.top - rect.height / 2
-            };
-
-            if (ghostRef.current) {
-              ghostRef.current.style.display = 'block';
-              ghostRef.current.innerHTML = renderBlockHTML(blocks[idx]);
-            }
-
-            e.currentTarget.style.opacity = '0.3';
-          }, [blocks, gameOver]);
-
-          const handleDragMove = useCallback((e) => {
-            if (!draggedBlockRef.current || !ghostRef.current) return;
-            
-            const x = e.clientX - dragOffsetRef.current.x;
-            const y = e.clientY - dragOffsetRef.current.y;
-            
-            ghostRef.current.style.left = x + 'px';
-            ghostRef.current.style.top = y + 'px';
-          }, []);
-
-          const handleDragEnd = useCallback((e) => {
-            if (!draggedBlockRef.current) return;
-
-            const ghost = ghostRef.current;
-            if (ghost) ghost.style.display = 'none';
-
-            const gridRect = gridRef.current?.getBoundingClientRect();
-            if (!gridRect) {
-              draggedBlockRef.current = null;
-              document.querySelectorAll('.block-container').forEach(el => el.style.opacity = '1');
-              return;
-            }
-
-            const cellSize = gridRect.width / GRID_SIZE;
-            const relX = e.clientX - gridRect.left;
-            const relY = e.clientY - gridRect.top;
-
-            if (relX < 0 || relY < 0 || relX > gridRect.width || relY > gridRect.height) {
-              draggedBlockRef.current = null;
-              document.querySelectorAll('.block-container').forEach(el => el.style.opacity = '1');
-              return;
-            }
-
-            const col = Math.floor(relX / cellSize);
-            const row = Math.floor(relY / cellSize);
-
-            placeBlock(draggedBlockRef.current.idx, row, col);
-            draggedBlockRef.current = null;
-
-            document.querySelectorAll('.block-container').forEach(el => el.style.opacity = '1');
-          }, [placeBlock]);
-
-          const handleTouchStart = useCallback((e, idx) => {
-            if (gameOver || !blocks[idx]) return;
-            e.preventDefault();
-            
-            playSound('pickup');
-            draggedBlockRef.current = { block: blocks[idx], idx };
-            
-            const touch = e.touches[0];
-            const rect = e.currentTarget.getBoundingClientRect();
-            dragOffsetRef.current = {
-              x: touch.clientX - rect.left - rect.width / 2,
-              y: touch.clientY - rect.top - rect.height / 2
-            };
-
-            if (ghostRef.current) {
-              ghostRef.current.style.display = 'block';
-              ghostRef.current.innerHTML = renderBlockHTML(blocks[idx]);
-            }
-
-            e.currentTarget.style.opacity = '0.3';
-          }, [blocks, gameOver]);
-
-          const handleTouchMove = useCallback((e) => {
-            if (!draggedBlockRef.current || !ghostRef.current) return;
-            e.preventDefault();
-            
-            const touch = e.touches[0];
-            const x = touch.clientX - dragOffsetRef.current.x;
-            const y = touch.clientY - dragOffsetRef.current.y;
-            
-            ghostRef.current.style.left = x + 'px';
-            ghostRef.current.style.top = y + 'px';
-          }, []);
-
-          const handleTouchEnd = useCallback((e) => {
-            if (!draggedBlockRef.current) return;
-            e.preventDefault();
-
-            const ghost = ghostRef.current;
-            if (ghost) ghost.style.display = 'none';
-
-            const touch = e.changedTouches[0];
-            const gridRect = gridRef.current?.getBoundingClientRect();
-            if (!gridRect) {
-              draggedBlockRef.current = null;
-              document.querySelectorAll('.block-container').forEach(el => el.style.opacity = '1');
-              return;
-            }
-
-            const cellSize = gridRect.width / GRID_SIZE;
-            const relX = touch.clientX - gridRect.left;
-            const relY = touch.clientY - gridRect.top;
-
-            if (relX < 0 || relY < 0 || relX > gridRect.width || relY > gridRect.height) {
-              draggedBlockRef.current = null;
-              document.querySelectorAll('.block-container').forEach(el => el.style.opacity = '1');
-              return;
-            }
-
-            const col = Math.floor(relX / cellSize);
-            const row = Math.floor(relY / cellSize);
-
-            placeBlock(draggedBlockRef.current.idx, row, col);
-            draggedBlockRef.current = null;
-
-            document.querySelectorAll('.block-container').forEach(el => el.style.opacity = '1');
-          }, [placeBlock]);
-
-          const renderBlockHTML = (block) => {
-            if (!block) return '';
-            return `<div style="display: grid; grid-template-columns: repeat(${block.shape[0].length}, 1fr); gap: 2px;">
-              ${block.shape.map(row => row.map(cell => 
-                `<div style="width: 20px; height: 20px; background: ${cell ? block.color : 'transparent'}; border-radius: 4px; box-shadow: ${cell ? '0 2px 4px rgba(0,0,0,0.3)' : 'none'};"></div>`
-              ).join('')).join('')}
-            </div>`;
-          };
-
-          const handleWithdraw = useCallback(() => {
-            if (earnings < MIN_WITHDRAWAL) {
-              alert(`Minimum ₹${MIN_WITHDRAWAL} required`);
-              return;
-            }
-            if (!upi) {
-              alert('Add UPI ID first!');
-              return;
-            }
-
-            const w = { amount: earnings.toFixed(2), upi, date: new Date().toLocaleDateString(), status: 'Pending' };
-            const newHistory = [w, ...history];
-            setHistory(newHistory);
-            localStorage.setItem('history', JSON.stringify(newHistory));
-            setEarnings(0);
-            alert(`₹${w.amount} withdrawal requested! Will be credited within 24-48 hours.`);
-          }, [earnings, upi, history]);
-
-          const saveProfile = useCallback(() => {
-            localStorage.setItem('userName', name);
-            localStorage.setItem('userUPI', upi);
-            alert('Profile saved successfully!');
-          }, [name, upi]);
-
-          if (screen === 'home') {
-            return (
-              <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center p-4">
-                <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 max-w-md w-full border border-white/20">
-                  <div className="text-center mb-8">
-                    <div className="inline-block bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full p-4 mb-4 animate-bounce">
-                      <Trophy size={48} className="text-white" />
-                    </div>
-                    <h1 className="text-5xl font-bold text-white mb-2">Block Blast</h1>
-                    <p className="text-yellow-300 text-xl font-semibold">💰 Earn Real Money</p>
-                    <div className="mt-4 bg-green-500/20 border-2 border-green-400 rounded-2xl p-3">
-                      <p className="text-green-300 text-lg font-bold">₹{EARNING_PER_LEVEL} Per Level</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 mb-6">
-                    <button onClick={() => setScreen('game')} className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-2xl font-bold text-xl shadow-lg hover:scale-105 transition-transform active:scale-95">
-                      🎮 Start Playing
-                    </button>
-                    <button onClick={() => setScreen('profile')} className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 text-white py-4 rounded-2xl font-bold text-xl shadow-lg hover:scale-105 transition-transform active:scale-95">
-                      👤 My Profile
-                    </button>
-                    <button onClick={() => setScreen('wallet')} className="w-full bg-gradient-to-r from-yellow-500 to-orange-600 text-white py-4 rounded-2xl font-bold text-xl shadow-lg hover:scale-105 transition-transform active:scale-95">
-                      💰 Wallet (₹{earnings.toFixed(2)})
-                    </button>
-                  </div>
-
-                  <div className="bg-white/10 rounded-2xl p-4 text-white text-sm">
-                    <h3 className="font-bold mb-2 text-center">📋 How to Earn?</h3>
-                    <ul className="space-y-1">
-                      <li>✅ Complete levels: ₹{EARNING_PER_LEVEL}</li>
-                      <li>✅ Watch ads for bonus</li>
-                      <li>✅ Min withdrawal: ₹{MIN_WITHDRAWAL}</li>
-                      <li>✅ UPI payment 24-48hrs</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            );
-          }
-
-          if (screen === 'profile') {
-            return (
-              <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 p-4">
-                <div className="max-w-md mx-auto bg-white rounded-3xl p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold">My Profile</h2>
-                    <button onClick={() => setScreen('home')} className="p-2"><X size={24} /></button>
-                  </div>
-
-                  <div className="text-center mb-6">
-                    <div className="inline-block bg-gradient-to-br from-purple-500 to-pink-500 rounded-full p-6 mb-4">
-                      <User size={48} className="text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold">{name}</h3>
-                  </div>
-
-                  <div className="space-y-4 mb-6">
-                    <div>
-                      <label className="block text-sm font-semibold mb-2">Name</label>
-                      <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 border-2 rounded-xl outline-none focus:border-purple-500" placeholder="Your name" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold mb-2">UPI ID</label>
-                      <input type="text" value={upi} onChange={(e) => setUpi(e.target.value)} className="w-full px-4 py-3 border-2 rounded-xl outline-none focus:border-purple-500" placeholder="name@paytm" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3 mb-6">
-                    <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl p-4 text-center text-white">
-                      <Trophy size={24} className="mx-auto mb-2" />
-                      <div className="text-2xl font-bold">{level}</div>
-                      <div className="text-xs">Level</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-4 text-center text-white">
-                      <DollarSign size={24} className="mx-auto mb-2" />
-                      <div className="text-2xl font-bold">₹{earnings.toFixed(0)}</div>
-                      <div className="text-xs">Earned</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl p-4 text-center text-white">
-                      <Star size={24} className="mx-auto mb-2" />
-                      <div className="text-2xl font-bold">{score}</div>
-                      <div className="text-xs">Score</div>
-                    </div>
-                  </div>
-
-                  <button onClick={saveProfile} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">
-                    💾 Save Profile
-                  </button>
-                </div>
-              </div>
-            );
-          }
-
-          if (screen === 'wallet') {
-            return (
-              <div className="min-h-screen bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 p-4">
-                <div className="max-w-md mx-auto bg-white rounded-3xl p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold">My Wallet</h2>
-                    <button onClick={() => setScreen('home')} className="p-2"><X size={24} /></button>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl p-6 text-white mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <p className="text-sm opacity-90">Balance</p>
-                        <h3 className="text-4xl font-bold">₹{earnings.toFixed(2)}</h3>
-                      </div>
-                      <Wallet size={48} />
-                    </div>
-                    <div className="flex gap-2">
-                      <div className="flex-1 bg-white/20 rounded-xl p-2 text-center">
-                        <p className="text-xs">Level</p>
-                        <p className="font-bold">{level}</p>
-                      </div>
-                      <div className="flex-1 bg-white/20 rounded-xl p-2 text-center">
-                        <p className="text-xs">Total</p>
-                        <p className="font-bold">₹{(level * EARNING_PER_LEVEL).toFixed(2)}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button onClick={handleWithdraw} disabled={earnings < MIN_WITHDRAWAL} className={`w-full py-4 rounded-2xl font-bold text-white shadow-lg mb-4 active:scale-95 transition-transform ${earnings >= MIN_WITHDRAWAL ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gray-400 cursor-not-allowed'}`}>
-                    {earnings >= MIN_WITHDRAWAL ? `💸 Withdraw ₹${earnings.toFixed(2)}` : `Need ₹${(MIN_WITHDRAWAL - earnings).toFixed(2)} more`}
-                  </button>
-
-                  <div className="bg-blue-50 rounded-2xl p-4 mb-4 text-sm">
-                    <h4 className="font-bold mb-2">📌 Info</h4>
-                    <ul className="text-gray-600 space-y-1">
-                      <li>• Min: ₹{MIN_WITHDRAWAL}</li>
-                      <li>• Time: 24-48 hours</li>
-                      <li>• Method: UPI only</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h4 className="font-bold mb-3">📜 History</h4>
-                    {history.length === 0 ? (
-                      <p className="text-center text-gray-500 py-4 text-sm">No withdrawals yet</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {history.slice(0, 5).map((w, i) => (
-                          <div key={i} className="bg-gray-50 rounded-xl p-3 flex justify-between text-sm">
-                            <div>
-                              <p className="font-bold">₹{w.amount}</p>
-                              <p className="text-xs text-gray-600">{w.date}</p>
-                            </div>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${w.status === 'Pending' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'}`}>
-                              {w.status}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          }
-
-          if (showAd) {
-            return (
-              <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-3xl p-6 max-w-sm w-full text-center">
-                  <h3 className="text-2xl font-bold mb-4">🎉 Level {level - 1} Complete!</h3>
-                  <div className="bg-green-100 rounded-2xl p-4 mb-4">
-                    <p className="text-green-800 font-bold text-xl">+₹{EARNING_PER_LEVEL}</p>
-                    <p className="text-sm text-gray-600">Added to wallet</p>
-                  </div>
-                  <div className="bg-gray-100 rounded-2xl p-8 mb-4">
-                    <ins className="adsbygoogle" style={{display:'block'}} data-ad-client="ca-app-pub-2761605268905056~7782544870" data-ad-slot="3704425417" data-ad-format="auto" data-full-width-responsive="true"></ins>
-                    <p className="text-gray-600 mt-2 text-sm">📺 Ad Loading...</p>
-                  </div>
-                  <button onClick={() => setShowAd(false)} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-2xl font-bold active:scale-95 transition-transform">
-Continue Playing
-                  </button>
-                </div>
-              </div>
-            );
-          }
-
-          // ***********************************************************************
-          // CODE ERROR FIX: Missing closing parenthesis in the original code snippet
-          // The 'Continue Playing' button code block had an open parenthesis:
-          // ... transition-transform"> Continue Playing
-          // ); 
-          // It should have been:
-          // ... transition-transform"> Continue Playing </button> </div> );
-          // This has been fixed in the final return block for the game screen.
-          // ***********************************************************************
-
-          return (
-            <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 flex flex-col p-2 overflow-hidden" style={{touchAction: 'none'}}
-              onMouseMove={handleDragMove}
-              onMouseUp={handleDragEnd}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}>
-              
-              <div ref={ghostRef} style={{position: 'fixed', pointerEvents: 'none', zIndex: 9999, display: 'none', transform: 'scale(1.3)'}} />
-
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-3 mb-2 flex justify-between items-center">
-                <button onClick={() => setScreen('home')} className="text-white p-2 active:scale-90 transition-transform"><Home size={24} /></button>
-                <div className="text-white font-bold">{name}</div>
-                <button onClick={() => setSound(!sound)} className="text-white p-2 active:scale-90 transition-transform">
-                  {sound ? <Volume2 size={24} /> : <VolumeX size={24} />}
-                </button>
-              </div>
-
-              <div className="flex-1 max-w-md mx-auto w-full">
-                <div className="grid grid-cols-4 gap-2 mb-2">
-                  <div className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl p-2 text-center">
-                    <Star size={16} className="inline text-white mb-1" />
-                    <div className="text-lg font-bold text-white">{score}</div>
-                    <div className="text-xs text-white/90">Score</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl p-2 text-center">
-                    <Trophy size={16} className="inline text-white mb-1" />
-                    <div className="text-lg font-bold text-white">{level}</div>
-                    <div className="text-xs text-white/90">Level</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-2 text-center">
-                    <DollarSign size={16} className="inline text-white mb-1" />
-                    <div className="text-lg font-bold text-white">₹{earnings.toFixed(1)}</div>
-                    <div className="text-xs text-white/90">Earned</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-pink-500 to-red-500 rounded-xl p-2 text-center">
-                    <Zap size={16} className="inline text-white mb-1" />
-                    <div className="text-lg font-bold text-white">{combo}x</div>
-                    <div className="text-xs text-white/90">Combo</div>
-                  </div>
-                </div>
-
-                <div className="bg-white/10 backdrop-blur-lg rounded-xl p-3 mb-2">
-                  <div className="flex justify-between text-white text-sm mb-2">
-                    <span>Progress</span>
-                    <span>{progress}%</span>
-                  </div>
-                  <div className="w-full bg-white/20 rounded-full h-3">
-                    <div className="bg-gradient-to-r from-green-400 to-emerald-500 h-3 rounded-full transition-all duration-500" style={{width: `${progress}%`}} />
-                  </div>
-                </div>
-
-                {gameOver && (
-                  <div className="mb-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl p-4 text-center">
-                    <h2 className="text-2xl font-bold text-white mb-2">Game Over! 😢</h2>
-                    <p className="text-white">Score: {score}</p>
-                  </div>
-                )}
-
-                <div ref={gridRef} className="bg-white/20 backdrop-blur-lg rounded-2xl p-2 mb-2">
-                  <div className="grid gap-1" style={{gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`}}>
-                    {grid.map((row, ri) => row.map((cell, ci) => (
-                      <div key={`${ri}-${ci}`} className="aspect-square rounded transition-all" style={{backgroundColor: cell || 'rgba(255,255,255,0.15)', boxShadow: cell ? '0 2px 4px rgba(0,0,0,0.3)' : 'none'}} />
-                    )))}
-                  </div>
-                </div>
-
-                <div className="mb-2">
-                  <p className="text-center text-white text-sm mb-2 font-semibold">👆 Drag blocks to grid</p>
-                  <div className="flex justify-around gap-2">
-                    {blocks.map((block, idx) => (
-                      <div key={block?.id || idx} className={`block-container bg-white/20 backdrop-blur-lg rounded-xl p-3 cursor-grab active:cursor-grabbing transition-opacity ${!block ? 'opacity-0 pointer-events-none' : ''}`}
-                        onMouseDown={(e) => handleDragStart(e, idx)}
-                        onTouchStart={(e) => handleTouchStart(e, idx)}>
-                        {block && (
-                          <div className="grid gap-1" style={{gridTemplateColumns: `repeat(${block.shape[0].length}, 1fr)`}}>
-                            {block.shape.map((row, r) => row.map((cell, c) => (
-                              <div key={`${r}-${c}`} className="w-5 h-5 rounded" style={{backgroundColor: cell ? block.color : 'transparent', boxShadow: cell ? '0 2px 4px rgba(0,0,0,0.4)' : 'none'}} />
-                            )))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button onClick={reset} className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform">
-                    <RotateCcw size={20} />
-                    {gameOver ? 'New Game' : 'Reset'}
-                  </button>
-                  <button onClick={() => setScreen('wallet')} className="bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform">
-                    <Wallet size={20} />
-                    ₹{earnings.toFixed(2)}
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        }; // End of BlockBlastPro component
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<BlockBlastPro />);
+    <script>
+        // Game State
+        let grid = Array(64).fill(null);
+        let score = 0;
+        let level = 1;
+        let progress = 0;
+        let earnings = parseFloat(localStorage.getItem('earnings') || '0');
+        let blocks = [];
+        let colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'];
         
-        // AdSense push has been delayed to ensure React is rendered first
-        setTimeout(() => {
-          (adsbygoogle = window.adsbygoogle || []).push({});
-        }, 1000);
+        // Init
+        document.getElementById('name-input').value = localStorage.getItem('userName') || '';
+        document.getElementById('upi-input').value = localStorage.getItem('userUPI') || '';
+        updateUI();
+        
+        function showScreen(screen) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screen).classList.add('active');
+            if (screen === 'game' && blocks.length === 0) initGame();
+        }
+        
+        function initGame() {
+            grid = Array(64).fill(null);
+            blocks = generateBlocks();
+            renderGame();
+        }
+        
+        function generateBlocks() {
+            const shapes = [
+                [[1]], [[1,1]], [[1],[1]], [[1,1,1]],
+                [[1,1],[1,1]], [[1,1,0],[0,1,1]]
+            ];
+            return Array(3).fill(0).map(() => ({
+                shape: shapes[Math.floor(Math.random() * shapes.length)],
+                color: colors[Math.floor(Math.random() * colors.length)]
+            }));
+        }
+        
+        function renderGame() {
+            // Render grid
+            const gridEl = document.getElementById('grid');
+            gridEl.innerHTML = '';
+            grid.forEach((cell, i) => {
+                const div = document.createElement('div');
+                div.className = 'cell';
+                if (cell) div.style.background = cell;
+                div.onclick = () => placeBlock(i);
+                gridEl.appendChild(div);
+            });
+            
+            // Render blocks
+            const blocksEl = document.getElementById('blocks');
+            blocksEl.innerHTML = '';
+            blocks.forEach((block, idx) => {
+                if (!block) return;
+                const div = document.createElement('div');
+                div.className = 'block';
+                div.onclick = () => selectBlock(idx);
+                block.shape.forEach(row => {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.style.display = 'flex';
+                    row.forEach(cell => {
+                        const cellDiv = document.createElement('div');
+                        cellDiv.className = 'block-cell';
+                        cellDiv.style.background = cell ? block.color : 'transparent';
+                        rowDiv.appendChild(cellDiv);
+                    });
+                    div.appendChild(rowDiv);
+                });
+                blocksEl.appendChild(div);
+            });
+        }
+        
+        let selectedBlockIdx = null;
+        function selectBlock(idx) {
+            selectedBlockIdx = idx;
+        }
+        
+        function placeBlock(gridIdx) {
+            if (selectedBlockIdx === null) return;
+            const block = blocks[selectedBlockIdx];
+            if (!block) return;
+            
+            const row = Math.floor(gridIdx / 8);
+            const col = gridIdx % 8;
+            
+            // Check if can place
+            for (let r = 0; r < block.shape.length; r++) {
+                for (let c = 0; c < block.shape[r].length; c++) {
+                    if (block.shape[r][c]) {
+                        const newRow = row + r;
+                        const newCol = col + c;
+                        if (newRow >= 8 || newCol >= 8 || grid[newRow * 8 + newCol]) return;
+                    }
+                }
+            }
+            
+            // Place block
+            for (let r = 0; r < block.shape.length; r++) {
+                for (let c = 0; c < block.shape[r].length; c++) {
+                    if (block.shape[r][c]) {
+                        grid[(row + r) * 8 + (col + c)] = block.color;
+                    }
+                }
+            }
+            
+            blocks[selectedBlockIdx] = null;
+            selectedBlockIdx = null;
+            score += 10;
+            progress += 5;
+            
+            // Clear lines
+            clearLines();
+            
+            // Check level up
+            if (progress >= 100) {
+                level++;
+                progress = 0;
+                earnings += 0.25;
+                localStorage.setItem('earnings', earnings);
+                alert('🎉 Level ' + (level-1) + ' Complete! +₹0.25');
+            }
+            
+            // Generate new blocks if all used
+            if (blocks.every(b => !b)) {
+                blocks = generateBlocks();
+            }
+            
+            updateUI();
+            renderGame();
+        }
+        
+        function clearLines() {
+            // Clear rows
+            for (let r = 0; r < 8; r++) {
+                let full = true;
+                for (let c = 0; c < 8; c++) {
+                    if (!grid[r * 8 + c]) full = false;
+                }
+                if (full) {
+                    for (let c = 0; c < 8; c++) grid[r * 8 + c] = null;
+                    score += 100;
+                    progress += 10;
+                }
+            }
+            
+            // Clear columns
+            for (let c = 0; c < 8; c++) {
+                let full = true;
+                for (let r = 0; r < 8; r++) {
+                    if (!grid[r * 8 + c]) full = false;
+                }
+                if (full) {
+                    for (let r = 0; r < 8; r++) grid[r * 8 + c] = null;
+                    score += 100;
+                    progress += 10;
+                }
+            }
+        }
+        
+        function resetGame() {
+            score = 0;
+            progress = 0;
+            initGame();
+            updateUI();
+        }
+        
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('level').textContent = level;
+            document.getElementById('earnings').textContent = earnings.toFixed(2);
+            document.getElementById('home-earnings').textContent = earnings.toFixed(2);
+            document.getElementById('wallet-earnings').textContent = earnings.toFixed(2);
+            document.getElementById('progress').style.width = progress + '%';
+        }
+        
+        function saveProfile() {
+            localStorage.setItem('userName', document.getElementById('name-input').value);
+            localStorage.setItem('userUPI', document.getElementById('upi-input').value);
+            alert('Profile saved!');
+        }
+        
+        function withdraw() {
+            const upi = localStorage.getItem('userUPI');
+            if (!upi) {
+                alert('Please add UPI ID in profile!');
+                return;
+            }
+            if (earnings < 10) {
+                alert('Minimum withdrawal: ₹10');
+                return;
+            }
+            
+            alert('₹' + earnings.toFixed(2) + ' withdrawal requested! Will be credited within 24-48 hours.');
+            earnings = 0;
+            localStorage.setItem('earnings', '0');
+            updateUI();
+        }
     </script>
 </body>
 </html>
-
-
